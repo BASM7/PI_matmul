@@ -3,6 +3,7 @@
 #include <sstream>
 #include <string>
 #include <iomanip>
+#include <conio.h>
 
 /*
 void quickMatrixMul(float* matrixNM, float* matrixMP, float* matrixNP, unsigned n, unsigned m, unsigned p){
@@ -69,9 +70,14 @@ void printMatrix_test(float* matrix, unsigned int rows, unsigned int cols){
     }
 }
 
+extern "C" int _someFunc();
+extern "C" float _sumRow(float* matrix, unsigned cols);
+
 int main(){
 
-    const char* matrix1_file = "Casos_prueba/case0_matrix1.txt";
+    const char* matrix1_file = "Casos_prueba/test.txt";
+
+    //const char* matrix1_file = "Casos_prueba/case0_matrix1.txt";
     const char* matrix2_file = "Casos_prueba/case0_matrix2.txt";
     const char* output_file = "Casos_prueba/case0_output.txt";
 
@@ -101,11 +107,22 @@ int main(){
     std::cout << "Se cargaron las matrices :" << std::endl;
     printMatrix_test(matrix1, rows_matrix1, cols_matrix1);
     std::cout << std::endl;
-    printMatrix_test(matrix2, rows_matrix2, cols_matrix2);
-    std::cout << std::endl;
+    // printMatrix_test(matrix2, rows_matrix2, cols_matrix2);
+    // std::cout << std::endl;
 
-    //std::cout << compare(matrix1, matrix1, rows_matrix1*cols_matrix1) << std::endl; 
+    //std::cout << compare(matrix1, matrix1, rows_matrix1*cols_matrix1) << std::endl;
+
+    
+
+    std::cout << _sumRow(matrix1, cols_matrix1) << std::endl;
+
+    //_getch();
+
+    return 0;
 }
 
 // Compilation.
+// g++ -g -no-pie -o matmul matmul_n.o
 // g++ -c -g -no-pie -o matmul_c.o matmul.cpp && g++ -g -no-pie -o matmul matmul_c.o
+
+// nasm -g -f elf64 -o matmul_n.o matmul.asm && g++ -c -g -no-pie -o matmul_c.o matmul.cpp && g++ -g -no-pie -o matmul matmul_n.o matmul_c.o
