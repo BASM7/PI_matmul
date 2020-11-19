@@ -1,3 +1,15 @@
+/*
+* Use the following to link and compile. Requires nasm compiler in the enviromental variables.
+* And MinGW 64bits compiler.
+* nasm -g -f elf64 -o matmul_n.o matmul.asm && g++ -c -g -no-pie -o matmul_c.o matmul.cpp && g++ -g -no-pie -o matmul matmul_n.o matmul_c.o
+*
+* TP2 Proyecto Integrador de Lenguaje Ensamblador.
+* author B93986 Luis Alfonso Jiménez.
+* author B95346 Jesús Alonso Moreno Montero.
+* author B95092 Víctor Jesús Mora Abarca.
+*/
+
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -5,8 +17,6 @@
 #include <iomanip>
 #include <conio.h>
 #include <cmath>
-
-void quickMatrixMul(float* matrixNM, float* matrixMP, float* matrixNP, unsigned int n, unsigned int m);
 
 float* loadMatrix(const char* filename, unsigned int &rows, unsigned int &cols ){
     std::ifstream matrix_file;
@@ -52,9 +62,7 @@ bool compare(float* matrixA, float* matrixB, unsigned int rows, unsigned int col
         for (int j = 0; j < cols; ++j){
             float num1 = matrixA[i*cols+j];
             float num2 = matrixB[i*cols+j];
-
             if (num1 != num2 && std::fabs(num1 - num2) < 0.001f ){
-                //std::cout << i << " " << num1 << " " << num2 << std::endl;
                 return false;                
             }
         }
@@ -84,21 +92,16 @@ float* transpose(float* matrix, unsigned int &rows, unsigned int &cols){
     return matrixReturn;
 }
 
-extern "C" int _test(int x,int y,int z, int  a,int b, int c);
-
 extern "C" float _quickMatrixMul(float* matrix1, float* matrix2, float* matrix_output, unsigned int n, unsigned int m, unsigned int p);
-extern "C" float _copy_row(float* matrix1, float* matrix_output);
 
 int main(){
-    //const char* matrix2_file = "Casos_prueba/test.txt";
+    const char* matrix1_file = "Casos_prueba/case0_matrix1.txt";
+    const char* matrix2_file = "Casos_prueba/case0_matrix2.txt";
+    const char* output_file = "Casos_prueba/case0_output.txt";
 
-    const char* matrix1_file = "Casos_prueba/mat_test1.txt";
-    const char* matrix2_file = "Casos_prueba/mat_test2.txt";
-    const char* output_file = "Casos_prueba/mat_test_output.txt";
-
-    // const char* matrix1_file = "Casos_prueba/case0_matrix1.txt";
-    // const char* matrix2_file = "Casos_prueba/case0_matrix2.txt";
-    // const char* output_file = "Casos_prueba/case0_output.txt";
+    // const char* matrix1_file = "Casos_prueba/case1_matrix1.txt";
+    // const char* matrix2_file = "Casos_prueba/case1_matrix2.txt";
+    // const char* output_file = "Casos_prueba/case1_output.txt";
 
     // const char* matrix1_file = "Casos_prueba/case2_matrix1.txt";
     // const char* matrix2_file = "Casos_prueba/case2_matrix2.txt";
@@ -118,13 +121,13 @@ int main(){
     unsigned int rows_matrixO;
     unsigned int cols_matrixO;
 
-    matrixO_result = new float[rows_matrixO*cols_matrixO];
-
     matrix1 = loadMatrix(matrix1_file, rows_matrix1, cols_matrix1);
     matrix2 = loadMatrix(matrix2_file, rows_matrix2, cols_matrix2);
     matrixO_expected = loadMatrix(output_file, rows_matrixO, cols_matrixO);
 
-    std::cout << "Se cargaron las matrices :" << std::endl;
+    matrixO_result = new float[rows_matrixO*cols_matrixO];
+
+    std::cout << "Loaded matrices :" << std::endl;
     printMatrix(matrix1, rows_matrix1, cols_matrix1);
     std::cout << std::endl;
     printMatrix(matrix2, rows_matrix2, cols_matrix2);
@@ -140,18 +143,20 @@ int main(){
     printMatrix(matrixO_result, rows_matrixO, cols_matrixO);
     std::cout << std::endl;
     std::cout << "Expected matrix:" <<std::endl;
-    //printMatrix(matrixO_expected, rows_matrixO, cols_matrixO);
+    printMatrix(matrixO_expected, rows_matrixO, cols_matrixO);
     std::cout << std::endl;
-    
-    //std::cout << matrixO_result[0] << " " << matrixO_expected[0] << std::endl;
 
     std::cout << std::endl;
     if (compare(matrixO_result, matrixO_expected, rows_matrixO, cols_matrixO))
         std::cout << "TEST PASSED" << std::endl;
     else
         std::cout << "TEST FAILED" <<std::endl;
-    //_getch();
 
+    matrix2 = transpose(matrix2, rows_matrix2, cols_matrix2);
+    delete[] matrix1;
+    delete[] matrix2;
+    delete[] matrixO_expected;
+    delete[] matrixO_result;
     return 0;
 }
 
