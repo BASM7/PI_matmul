@@ -4,6 +4,7 @@
 #include <string>
 #include <iomanip>
 #include <conio.h>
+#include <cmath>
 
 void quickMatrixMul(float* matrixNM, float* matrixMP, float* matrixNP, unsigned int n, unsigned int m);
 
@@ -46,37 +47,41 @@ float* loadMatrix(const char* filename, unsigned int &rows, unsigned int &cols )
     return new_matrix;
 }
 
-bool compare(float* matrixA, float* matrixB, unsigned int elements){
-    bool are_equal = true;
-    for (int i = 0; i < elements; i++){
-        if (matrixA[i] != matrixB[i]){
-            are_equal = false;
-            break;
+bool compare(float* matrixA, float* matrixB, unsigned int rows, unsigned int cols){
+    for (int i = 0; i < rows; ++i){
+        for (int j = 0; j < cols; ++j){
+            float num1 = matrixA[i*cols+j];
+            float num2 = matrixB[i*cols+j];
+
+            if (num1 != num2 && std::fabs(num1 - num2) < 0.001f ){
+                //std::cout << i << " " << num1 << " " << num2 << std::endl;
+                return false;                
+            }
         }
     }
-    return are_equal;
+    return true;
 }
 
 void printMatrix(float* matrix, unsigned int rows, unsigned int cols){
     for (int i = 0; i < rows; i++){
         for (int j = 0; j < cols; j++){
-            std::cout << std::setw(5) << matrix[i*cols+j] << " ";          
+            std::cout << std::setw(8) << matrix[i*cols+j] << " ";          
         }
         std::cout << std::endl;
     }
 }
 
-void transpose(float* matrix, unsigned int &rows, unsigned int &cols){
+float* transpose(float* matrix, unsigned int &rows, unsigned int &cols){
+    float* matrixReturn = new float[cols*rows];
     for (int i = 0; i < rows; i++){
-        for (int j = i + 1; j < cols; j++){
-            float temp = matrix[i*cols+j];
-            matrix[i*cols+j] = matrix[j*cols+i];
-            matrix[j*cols+i] = temp;
+        for (int j = 0; j < cols; j++){
+            matrixReturn[j*rows+i]= matrix[i*cols+j];
         }
     }
     int temp = rows;
     rows = cols;
     cols = temp;
+    return matrixReturn;
 }
 
 extern "C" int _test(int x,int y,int z, int  a,int b, int c);
@@ -87,17 +92,17 @@ extern "C" float _copy_row(float* matrix1, float* matrix_output);
 int main(){
     //const char* matrix2_file = "Casos_prueba/test.txt";
 
+    const char* matrix1_file = "Casos_prueba/mat_test1.txt";
+    const char* matrix2_file = "Casos_prueba/mat_test2.txt";
+    const char* output_file = "Casos_prueba/mat_test_output.txt";
+
     // const char* matrix1_file = "Casos_prueba/case0_matrix1.txt";
     // const char* matrix2_file = "Casos_prueba/case0_matrix2.txt";
     // const char* output_file = "Casos_prueba/case0_output.txt";
 
-    //const char* matrix1_file = "Casos_prueba/case1_matrix1.txt";
-    // const char* matrix2_file = "Casos_prueba/case1_matrix2.txt";
-    // const char* output_file = "Casos_prueba/case1_output.txt";
-
-    const char* matrix1_file = "Casos_prueba/case2_matrix1.txt";
-    const char* matrix2_file = "Casos_prueba/case2_matrix2.txt";
-    const char* output_file = "Casos_prueba/case2_output.txt";
+    // const char* matrix1_file = "Casos_prueba/case2_matrix1.txt";
+    // const char* matrix2_file = "Casos_prueba/case2_matrix2.txt";
+    // const char* output_file = "Casos_prueba/case2_output.txt";
 
     float* matrix1;
     float* matrix2;
@@ -106,12 +111,14 @@ int main(){
     
     unsigned int rows_matrix1;
     unsigned int cols_matrix1;
+
     unsigned int rows_matrix2;
     unsigned int cols_matrix2;
+
     unsigned int rows_matrixO;
     unsigned int cols_matrixO;
 
-    matrixO_result = new float[16];
+    matrixO_result = new float[rows_matrixO*cols_matrixO];
 
     matrix1 = loadMatrix(matrix1_file, rows_matrix1, cols_matrix1);
     matrix2 = loadMatrix(matrix2_file, rows_matrix2, cols_matrix2);
@@ -123,28 +130,30 @@ int main(){
     printMatrix(matrix2, rows_matrix2, cols_matrix2);
     std::cout << std::endl;
 
-    //std::cout << compare(matrix1, matrix1, rows_matrix1*cols_matrix1) << std::endl;
+    matrix2 = transpose(matrix2, rows_matrix2, cols_matrix2);
+    std::cout << std::endl;
 
-    //float* matrix_test = new float[16];
-    
-    //std::cout << _test(1, 2, 3, 4, 5, 6) << std::endl;
+    _quickMatrixMul(matrix1, matrix2, matrixO_result, rows_matrix1, cols_matrix1, cols_matrixO);
 
-    transpose(matrix2, rows_matrix2, cols_matrix2);
-    _quickMatrixMul(matrix1, matrix2, matrixO_result, rows_matrix1*4, 4*4, cols_matrixO*4);
-
-
-    // //std::cout << _quickMatrixMul(matrix1, matrix2, matrixO_result) << std::endl;
+    std::cout << "Resulted matrix:" <<std::endl;
+    std::cout << std::endl;
     printMatrix(matrixO_result, rows_matrixO, cols_matrixO);
-    //std::cout << "Transpose: " << std::endl;
-    //transpose(matrix1, rows_matrix1, cols_matrix1);
-    //printMatrix(matrix1, cols_matrix1, rows_matrix1);
-    //_copy_row(matrix1, matrix_test);
-    //printMatrix_test(matrix_test, 4, 4);
+    std::cout << std::endl;
+    std::cout << "Expected matrix:" <<std::endl;
+    //printMatrix(matrixO_expected, rows_matrixO, cols_matrixO);
+    std::cout << std::endl;
+    
+    //std::cout << matrixO_result[0] << " " << matrixO_expected[0] << std::endl;
 
+    std::cout << std::endl;
+    if (compare(matrixO_result, matrixO_expected, rows_matrixO, cols_matrixO))
+        std::cout << "TEST PASSED" << std::endl;
+    else
+        std::cout << "TEST FAILED" <<std::endl;
     //_getch();
 
     return 0;
 }
 
-// Compilation.
+// Compilation and linking.
 // nasm -g -f elf64 -o matmul_n.o matmul.asm && g++ -c -g -no-pie -o matmul_c.o matmul.cpp && g++ -g -no-pie -o matmul matmul_n.o matmul_c.o
